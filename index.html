@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>工具箱</title>
+  <style>
+    /* ========== 与 pdf2 一致的设计变量 ========== */
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --secondary: #6b7280;
+      --success: #10b981;
+      --danger: #ef4444;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --radius: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ========== 页面容器 ========== */
+    .page-container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    /* ========== 头部 ========== */
+    .page-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .page-header h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* ========== 工具卡片网格 ========== */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .tool-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+    }
+
+    .tool-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+
+    .tool-icon {
+      font-size: 40px;
+      margin-bottom: 14px;
+    }
+
+    .tool-card h3 {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .tool-card p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      flex: 1;
+    }
+
+    .tool-tag {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      background: #eef2ff;
+      color: var(--primary);
+      align-self: flex-start;
+    }
+
+    /* 即将上线的卡片 */
+    .tool-card.coming-soon {
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    .tool-card.coming-soon .tool-tag {
+      background: #f1f5f9;
+      color: var(--secondary);
+    }
+
+    /* ========== 底部 ========== */
+    .page-footer {
+      text-align: center;
+      margin-top: 56px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ========== 响应式 ========== */
+    @media (max-width: 640px) {
+      .page-container {
+        padding: 32px 16px 60px;
+      }
+      .page-header h2 {
+        font-size: 22px;
+      }
+      .tool-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-container">
+    <header class="page-header">
+      <h2>�� 在线工具箱</h2>
+      <p>纯前端实现，数据不上传服务器，安全离线可用</p>
+    </header>
+
+    <div class="tool-grid">
+      <!-- ===== 已上线工具 ===== -->
+      <a class="tool-card" href="pdf2/index.html">
+        <div class="tool-icon">��</div>
+        <h3>PDF 印章/签名贴图</h3>
+        <p>上传印章或签名图片，自动去除背景，拖拽贴合到 PDF 指定位置并导出。支持缩放、旋转、多页导航。</p>
+        <span class="tool-tag">✅ 可用</span>
+      </a>
+
+      <!-- ===== 占位：后续扩展工具 ===== -->
+      <a class="tool-card coming-soon" href="#">
+        <div class="tool-icon">��️</div>
+        <h3>图片批量处理</h3>
+        <p>批量压缩、格式转换、裁剪、加水印等图片处理功能。</p>
+        <span class="tool-tag">�� 即将上线</span>
+      </a>
+
+      <a class="tool-card coming-soon" href="#">
+        <div class="tool-icon">��</div>
+        <h3>Markdown 编辑器</h3>
+        <p>在线 Markdown 编辑与实时预览，支持导出 PDF / HTML。</p>
+        <span class="tool-tag">�� 即将上线</span>
+      </a>
+    </div>
+
+    <footer class="page-footer">
+      <p>所有工具均在浏览器本地运行，数据不会上传至任何服务器</p>
+    </footer>
+  </div>
+</body>
+</html>

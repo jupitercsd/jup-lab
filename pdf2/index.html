@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF 印章贴图工具</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 顶部标题栏 -->
+    <header class="app-header">
+      <h2>�� PDF 印章/签名贴图工具</h2>
+    </header>
+
+    <!-- 步骤指示器 -->
+    <div class="step-indicator">
+      <div class="step active" data-step="1"><span class="step-num">1</span> 上传图片</div>
+      <div class="step-arrow">→</div>
+      <div class="step" data-step="2"><span class="step-num">2</span> 去除背景</div>
+      <div class="step-arrow">→</div>
+      <div class="step" data-step="3"><span class="step-num">3</span> 上传PDF & 贴图</div>
+      <div class="step-arrow">→</div>
+      <div class="step" data-step="4"><span class="step-num">4</span> 预览 & 导出</div>
+    </div>
+
+    <!-- ========== 步骤1: 上传图片 ========== -->
+    <section id="step1-panel" class="panel active-panel">
+      <h3>步骤 1：上传印章/签名图片</h3>
+      <div class="upload-zone" id="image-upload-zone">
+        <div class="upload-icon">��️</div>
+        <p>拖拽图片到此处，或点击选择文件</p>
+        <p class="upload-hint">支持 PNG / JPG / JPEG</p>
+        <input type="file" id="image-input" accept=".png,.jpg,.jpeg" hidden>
+      </div>
+      <div id="image-preview-area" class="preview-area" style="display:none;">
+        <h4>原始图片预览</h4>
+        <canvas id="original-image-canvas"></canvas>
+      </div>
+      <div class="btn-row" id="step1-btns" style="display:none;">
+        <button class="btn btn-primary" id="btn-to-step2">下一步：去除背景 →</button>
+      </div>
+    </section>
+
+    <!-- ========== 步骤2: 去除背景 ========== -->
+    <section id="step2-panel" class="panel">
+      <h3>步骤 2：去除背景</h3>
+      <div class="bg-removal-controls">
+        <div class="control-group">
+          <label>去背景模式：</label>
+          <div class="radio-group">
+            <label><input type="radio" name="bg-mode" value="white" checked> 白底去除（适合签名）</label>
+            <label><input type="radio" name="bg-mode" value="red"> 红章提取（适合公章）</label>
+            <label><input type="radio" name="bg-mode" value="custom"> 自定义阈值</label>
+          </div>
+        </div>
+        <div class="control-group" id="threshold-group" style="display:none;">
+          <label>透明度阈值：<span id="threshold-value">240</span></label>
+          <input type="range" id="threshold-slider" min="100" max="255" value="240">
+        </div>
+        <button class="btn btn-secondary" id="btn-apply-bg">应用去背景</button>
+      </div>
+      <div class="compare-area">
+        <div class="compare-item">
+          <h4>原始图片</h4>
+          <div class="canvas-wrapper checkerboard">
+            <canvas id="bg-original-canvas"></canvas>
+          </div>
+        </div>
+        <div class="compare-item">
+          <h4>去背景结果</h4>
+          <div class="canvas-wrapper checkerboard">
+            <canvas id="bg-result-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="btn-back-step1">← 重新上传图片</button>
+        <button class="btn btn-secondary" id="btn-export-image" disabled>�� 导出透明图片</button>
+        <button class="btn btn-primary" id="btn-to-step3" disabled>下一步：上传PDF →</button>
+      </div>
+    </section>
+
+    <!-- ========== 步骤3: 上传PDF & 贴图 ========== -->
+    <section id="step3-panel" class="panel">
+      <h3>步骤 3：上传 PDF 并贴图</h3>
+      <div class="upload-zone" id="pdf-upload-zone">
+        <div class="upload-icon">��</div>
+        <p>拖拽 PDF 到此处，或点击选择文件</p>
+        <p class="upload-hint">仅支持 PDF 格式</p>
+        <input type="file" id="pdf-input" accept=".pdf" hidden>
+      </div>
+
+      <div id="pdf-editor-area" class="editor-layout" style="display:none;">
+        <!-- 左侧：PDF 画布 -->
+        <div class="editor-main">
+          <p class="hint">��️ 拖拽印章到目标位置 | 滚轮翻页</p>
+          <div class="pdf-canvas-container" id="pdf-canvas-container">
+            <canvas id="pdf-canvas"></canvas>
+            <canvas id="stamp-overlay-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- 右侧：侧边栏控件 -->
+        <div class="editor-sidebar">
+          <!-- 页码导航 -->
+          <div class="sidebar-section">
+            <h4>�� 页码导航</h4>
+            <div class="page-nav-vertical">
+              <div class="page-nav-row">
+                <button class="btn btn-small" id="btn-prev-page">◀</button>
+                <span>第 <input type="number" id="page-number-input" min="1" value="1"> / <span id="total-pages">0</span> 页</span>
+                <button class="btn btn-small" id="btn-next-page">▶</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 缩放控件 -->
+          <div class="sidebar-section">
+            <h4>�� 印章缩放</h4>
+            <div class="control-group">
+              <label>大小：<span id="scale-value">100</span>%</label>
+              <input type="range" id="scale-slider" min="10" max="300" value="100">
+            </div>
+          </div>
+
+          <!-- 旋转控件 -->
+          <div class="sidebar-section">
+            <h4>�� 印章旋转</h4>
+            <div class="control-group">
+              <label>角度：<span id="rotate-value">0</span>°</label>
+              <input type="range" id="rotate-slider" min="-180" max="180" value="0">
+            </div>
+          </div>
+
+          <button class="btn btn-small btn-secondary sidebar-btn" id="btn-reset-transform">重置缩放/旋转</button>
+
+          <div class="sidebar-actions">
+            <button class="btn btn-ghost sidebar-btn" id="btn-back-step2">← 返回</button>
+            <button class="btn btn-primary sidebar-btn" id="btn-to-step4">预览导出 →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== 步骤4: 预览 & 导出 ========== -->
+    <section id="step4-panel" class="panel">
+      <h3>步骤 4：预览确认 & 导出</h3>
+      <div class="preview-final">
+        <h4>最终效果预览</h4>
+        <canvas id="final-preview-canvas"></canvas>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="btn-back-step3">← 返回调整</button>
+        <button class="btn btn-primary btn-large" id="btn-export">✅ 确认导出 PDF</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- CDN 引入 pdf.js 和 pdf-lib -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script>
+    // 设置 pdf.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
