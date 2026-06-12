@@ -10,7 +10,7 @@
   <div class="app-container">
     <!-- 顶部标题栏 -->
     <header class="app-header">
-      <h2>�� PDF 印章/签名贴图工具</h2>
+      <h2>🖋️ PDF 印章/签名贴图工具</h2>
     </header>
 
     <!-- 步骤指示器 -->
@@ -28,7 +28,7 @@
     <section id="step1-panel" class="panel active-panel">
       <h3>步骤 1：上传印章/签名图片</h3>
       <div class="upload-zone" id="image-upload-zone">
-        <div class="upload-icon">��️</div>
+        <div class="upload-icon">🖼️</div>
         <p>拖拽图片到此处，或点击选择文件</p>
         <p class="upload-hint">支持 PNG / JPG / JPEG</p>
         <input type="file" id="image-input" accept=".png,.jpg,.jpeg" hidden>
@@ -76,7 +76,7 @@
       </div>
       <div class="btn-row">
         <button class="btn btn-ghost" id="btn-back-step1">← 重新上传图片</button>
-        <button class="btn btn-secondary" id="btn-export-image" disabled>�� 导出透明图片</button>
+        <button class="btn btn-secondary" id="btn-export-image" disabled>💾 导出透明图片</button>
         <button class="btn btn-primary" id="btn-to-step3" disabled>下一步：上传PDF →</button>
       </div>
     </section>
@@ -85,7 +85,7 @@
     <section id="step3-panel" class="panel">
       <h3>步骤 3：上传 PDF 并贴图</h3>
       <div class="upload-zone" id="pdf-upload-zone">
-        <div class="upload-icon">��</div>
+        <div class="upload-icon">📄</div>
         <p>拖拽 PDF 到此处，或点击选择文件</p>
         <p class="upload-hint">仅支持 PDF 格式</p>
         <input type="file" id="pdf-input" accept=".pdf" hidden>
@@ -94,7 +94,7 @@
       <div id="pdf-editor-area" class="editor-layout" style="display:none;">
         <!-- 左侧：PDF 画布 -->
         <div class="editor-main">
-          <p class="hint">��️ 拖拽印章到目标位置 | 滚轮翻页</p>
+          <p class="hint">🖱️ 拖拽印章到目标位置 | 滚轮翻页</p>
           <div class="pdf-canvas-container" id="pdf-canvas-container">
             <canvas id="pdf-canvas"></canvas>
             <canvas id="stamp-overlay-canvas"></canvas>
@@ -105,7 +105,7 @@
         <div class="editor-sidebar">
           <!-- 页码导航 -->
           <div class="sidebar-section">
-            <h4>�� 页码导航</h4>
+            <h4>📄 页码导航</h4>
             <div class="page-nav-vertical">
               <div class="page-nav-row">
                 <button class="btn btn-small" id="btn-prev-page">◀</button>
@@ -117,7 +117,7 @@
 
           <!-- 缩放控件 -->
           <div class="sidebar-section">
-            <h4>�� 印章缩放</h4>
+            <h4>🔍 印章缩放</h4>
             <div class="control-group">
               <label>大小：<span id="scale-value">100</span>%</label>
               <input type="range" id="scale-slider" min="10" max="300" value="100">
@@ -126,7 +126,7 @@
 
           <!-- 旋转控件 -->
           <div class="sidebar-section">
-            <h4>�� 印章旋转</h4>
+            <h4>🔄 印章旋转</h4>
             <div class="control-group">
               <label>角度：<span id="rotate-value">0</span>°</label>
               <input type="range" id="rotate-slider" min="-180" max="180" value="0">
