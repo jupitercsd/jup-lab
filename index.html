@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Jupiter的工具箱</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏷️</text></svg>">
+  <!-- Vercel Analytics (后台仪表盘统计) -->
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/home.css">
 </head>
@@ -31,7 +36,7 @@
           <strong>02</strong>
           <span>制作中</span>
         </div>
-        <div>
+        <div class="stat-clickable" id="btn-feedback" role="button" tabindex="0">
           <strong>😊</strong>
           <span>提交建议</span>
         </div>
@@ -104,6 +109,26 @@
 
 
 
+    <!-- 建议反馈弹窗 -->
+    <div class="modal-overlay" id="feedback-modal" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-header">
+          <h3 id="modal-title">💬 提交建议</h3>
+          <button class="modal-close" id="btn-modal-close" aria-label="关闭">✕</button>
+        </div>
+        <textarea
+          class="modal-textarea"
+          id="feedback-text"
+          placeholder="写下你的想法、需求或 bug 反馈…"
+          maxlength="2000"
+          rows="5"
+        ></textarea>
+        <div class="modal-footer">
+          <button class="modal-submit" id="btn-submit-feedback" disabled>发送</button>
+        </div>
+      </div>
+    </div>
+
     <footer class="page-footer">
       <!-- 访问统计 -->
       <p class="site-stats">
@@ -113,22 +138,9 @@
       </p>
     </footer>
   </main>
-  <script>
-    (function () {
-      var isWebPage = /^https?:$/.test(window.location.protocol);
-      var isLocalHost = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(window.location.hostname);
+  <!-- 顶部消息通知 -->
+  <div class="toast" id="toast" aria-live="polite"></div>
 
-      if (!isWebPage || isLocalHost) {
-        document.getElementById('busuanzi_value_site_pv').textContent = '-';
-        document.getElementById('busuanzi_value_site_uv').textContent = '-';
-        return;
-      }
-
-      var script = document.createElement('script');
-      script.defer = true;
-      script.src = 'https://cn.vercount.one/js';
-      document.body.appendChild(script);
-    })();
-  </script>
+  <script src="js/main.js"></script>
 </body>
 </html>
