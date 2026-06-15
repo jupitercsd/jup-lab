@@ -7,6 +7,7 @@
 
 /* ========== 顶部标题 ========== */
 .app-header {
+  position: relative;
   text-align: center;
   margin-bottom: 24px;
 }
@@ -15,6 +16,34 @@
   font-size: 24px;
   font-weight: 700;
   color: var(--text);
+}
+
+.back-btn {
+  position: absolute;
+  left: 20px;
+  top: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease, gap 0.2s ease;
+}
+
+.back-btn::before {
+  content: "←";
+  transition: transform 0.2s ease;
+}
+
+.back-btn:hover {
+  color: var(--primary);
+  gap: 10px;
+}
+
+.back-btn:hover::before {
+  transform: translateX(-3px);
 }
 
 
@@ -496,5 +525,10 @@ input[type="range"]::-webkit-slider-thumb {
   .radio-group {
     flex-direction: column;
     gap: 8px;
+  }
+
+  .back-btn {
+    position: static;
+    margin-bottom: 8px;
   }
 }

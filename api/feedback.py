@@ -1,10 +1,57 @@
 """
-接收用户建议反馈，写入 Vercel 日志（可后续扩展存储）
+接收用户建议反馈 → 存入 Upstash Redis
 POST /api/feedback  body: {"text": "...", "page": "..."}
+
+需要 Vercel 环境变量：
+  KV_REST_API_URL   — Upstash REST API 地址
+  KV_REST_API_TOKEN — Upstash REST API token
 """
 import json
+import os
+import urllib.parse
+import urllib.request
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler
+
+REDIS_URL = os.environ.get("KV_REST_API_URL", "")
+REDIS_TOKEN = os.environ.get("KV_REST_API_TOKEN", "")
+LIST_KEY = "feedbacks"
+MAX_LEN = 500  # 最多保留条数
+
+
+def store_feedback(data: dict) -> bool:
+    """LPUSH 到 Redis，成功返回 True"""
+    if not REDIS_URL or not REDIS_TOKEN:
+        print("[feedback] Redis 未配置，仅打印日志:", json.dumps(data, ensure_ascii=False))
+        return False
+
+    payload = json.dumps(data, ensure_ascii=False)
+    encoded = urllib.parse.quote(payload, safe="")
+
+    # LPUSH + LTRIM 保持列表长度
+    push_url = f"{REDIS_URL}/lpush/{LIST_KEY}/{encoded}"
+    trim_url = f"{REDIS_URL}/ltrim/{LIST_KEY}/0/{MAX_LEN - 1}"
+
+    headers = {"Authorization": f"Bearer {REDIS_TOKEN}"}
+    req = urllib.request.Request(push_url, method="POST", headers=headers)
+
+    try:
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            body = resp.read().decode()
+            print(f"[feedback] LPUSH OK: {body}")
+
+        # 裁剪长度（异步不阻塞，失败不影响主流程）
+        trim_req = urllib.request.Request(trim_url, method="POST", headers=headers)
+        try:
+            with urllib.request.urlopen(trim_req, timeout=3):
+                pass
+        except Exception:
+            pass
+
+        return True
+    except Exception as exc:
+        print(f"[feedback] Redis 写入失败: {exc}")
+        return False
 
 
 class handler(BaseHTTPRequestHandler):
@@ -19,20 +66,21 @@ class handler(BaseHTTPRequestHandler):
             return
 
         text = (data.get("text") or "").strip()
-        if not text or len(text) > 200:
-            self._respond(400, {"ok": False, "error": "内容为空或超过200字"})
+        if not text or len(text) > 2000:
+            self._respond(400, {"ok": False, "error": "内容为空或超过2000字"})
             return
 
-        # 打印到 Vercel 日志（可在 Vercel Dashboard → Logs 查看）
-        print(json.dumps({
-            "type": "feedback",
+        record = {
             "time": datetime.now(timezone.utc).isoformat(),
             "page": data.get("page", ""),
             "ip": self.headers.get("X-Forwarded-For", ""),
             "text": text,
-        }, ensure_ascii=False))
+        }
 
-        self._respond(200, {"ok": True})
+        ok = store_feedback(record)
+
+        # 即使 Redis 挂了也返回成功（数据已打印到日志可查）
+        self._respond(200, {"ok": True, "stored": ok})
 
     def do_OPTIONS(self):
         self._cors_headers(204)
