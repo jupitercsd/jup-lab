@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文档转 PDF</title>
+  <link rel="stylesheet" href="../css/common.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 顶部标题栏 -->
+    <header class="app-header">
+      <a href="../index.html" class="back-btn" aria-label="返回首页">返回</a>
+      <h2>📄 文档转 PDF</h2>
+      <p class="app-subtitle">支持 Word / Excel / PPT / 图片 / 文本 等格式</p>
+    </header>
+
+    <!-- 上传区域 -->
+    <section class="panel active-panel">
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-icon">📂</div>
+        <p>拖拽文件到此处，或点击选择</p>
+        <p class="upload-hint">
+          支持 DOC / DOCX / XLS / XLSX / PPT / PPTX / JPG / PNG / GIF / TXT / RTF
+        </p>
+        <input type="file" id="file-input" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.bmp,.gif,.tiff,.tif,.txt,.rtf" hidden>
+      </div>
+
+      <!-- 文件信息 -->
+      <div id="file-info" class="file-info" style="display:none;">
+        <div class="file-row">
+          <span class="file-icon" id="file-icon">📎</span>
+          <div class="file-detail">
+            <span class="file-name" id="file-name">—</span>
+            <span class="file-size" id="file-size">—</span>
+          </div>
+          <button class="btn btn-ghost btn-small" id="btn-clear-file">✕</button>
+        </div>
+      </div>
+
+      <!-- 转换按钮 -->
+      <div class="btn-row" id="action-row" style="display:none;">
+        <button class="btn btn-primary btn-large" id="btn-convert">
+          🔄 开始转换
+        </button>
+      </div>
+
+      <!-- 转换状态 -->
+      <div id="status-area" class="status-area" style="display:none;">
+        <div class="status-bar-wrapper">
+          <div class="status-bar" id="status-bar"></div>
+        </div>
+        <p class="status-text" id="status-text">正在上传文件…</p>
+      </div>
+
+      <!-- 下载区域 -->
+      <div id="result-area" class="result-area" style="display:none;">
+        <div class="result-card">
+          <div class="result-icon">✅</div>
+          <p>转换完成</p>
+          <button class="btn btn-primary btn-large" id="btn-download">
+            📥 下载 PDF
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
