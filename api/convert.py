@@ -17,9 +17,11 @@ from http.server import BaseHTTPRequestHandler
 
 CLIENT_ID = os.environ.get("ADOBE_CLIENT_ID", "")
 CLIENT_SECRET = os.environ.get("ADOBE_CLIENT_SECRET", "")
+ORG_ID = os.environ.get("ADOBE_ORG_ID", "")
 TOKEN_URL = os.environ.get("ADOBE_TOKEN_URL", "https://pdf-services.adobe.io/token")
 IMS_TOKEN_URL = "https://ims-na1.adobelogin.com/ims/token/v3"
 API_BASE = os.environ.get("ADOBE_API_BASE", "https://pdf-services.adobe.io")
+SCOPE = os.environ.get("ADOBE_SCOPE", "pdfservices.enterprise_scope")
 MAX_FILE_BYTES = 10 * 1024 * 1024
 MAX_POLL_SECONDS = 50
 POLL_INTERVAL_SECONDS = 2
@@ -78,11 +80,15 @@ def _get_token():
     if not CLIENT_ID or not CLIENT_SECRET:
         raise RuntimeError("Adobe 凭据未配置")
 
-    body = urllib.parse.urlencode({
+    params = {
+        "grant_type": "client_credentials",
         "client_id": CLIENT_ID,
         "client_secret": CLIENT_SECRET,
-    }).encode("utf-8")
+        "scope": SCOPE,
+    }
+    body = urllib.parse.urlencode(params).encode("utf-8")
 
+    # try primary endpoint first
     req = urllib.request.Request(
         TOKEN_URL,
         data=body,
@@ -93,18 +99,14 @@ def _get_token():
     try:
         data = _request(req, timeout=10)
     except RuntimeError:
-        fallback_body = urllib.parse.urlencode({
-            "grant_type": "client_credentials",
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-        }).encode("utf-8")
-        fallback_req = urllib.request.Request(
+        # fallback to IMS OAuth2 endpoint
+        req2 = urllib.request.Request(
             IMS_TOKEN_URL,
-            data=fallback_body,
+            data=body,
             method="POST",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
-        data = _request(fallback_req, timeout=10)
+        data = _request(req2, timeout=10)
 
     token = data.get("access_token")
     if not token:
