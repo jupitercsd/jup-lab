@@ -15,11 +15,15 @@ import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler
 
-CLIENT_ID = os.environ.get("ADOBE_CLIENT_ID", "")
-CLIENT_SECRET = os.environ.get("ADOBE_CLIENT_SECRET", "")
-ORG_ID = os.environ.get("ADOBE_ORG_ID", "")
-TOKEN_URL = os.environ.get("ADOBE_TOKEN_URL", "https://pdf-services.adobe.io/token")
-API_BASE = os.environ.get("ADOBE_API_BASE", "https://pdf-services.adobe.io")
+def _env(name, default=""):
+    return os.environ.get(name, default).strip()
+
+
+CLIENT_ID = _env("ADOBE_CLIENT_ID").lower()
+CLIENT_SECRET = _env("ADOBE_CLIENT_SECRET")
+ORG_ID = _env("ADOBE_ORG_ID")
+TOKEN_URL = _env("ADOBE_TOKEN_URL", "https://pdf-services.adobe.io/token")
+API_BASE = _env("ADOBE_API_BASE", "https://pdf-services.adobe.io")
 MAX_FILE_BYTES = 10 * 1024 * 1024
 MAX_POLL_SECONDS = 50
 POLL_INTERVAL_SECONDS = 2
