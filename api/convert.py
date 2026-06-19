@@ -19,9 +19,7 @@ CLIENT_ID = os.environ.get("ADOBE_CLIENT_ID", "")
 CLIENT_SECRET = os.environ.get("ADOBE_CLIENT_SECRET", "")
 ORG_ID = os.environ.get("ADOBE_ORG_ID", "")
 TOKEN_URL = os.environ.get("ADOBE_TOKEN_URL", "https://pdf-services.adobe.io/token")
-IMS_TOKEN_URL = "https://ims-na1.adobelogin.com/ims/token/v3"
 API_BASE = os.environ.get("ADOBE_API_BASE", "https://pdf-services.adobe.io")
-SCOPE = os.environ.get("ADOBE_SCOPE", "pdfservices.enterprise_scope")
 MAX_FILE_BYTES = 10 * 1024 * 1024
 MAX_POLL_SECONDS = 50
 POLL_INTERVAL_SECONDS = 2
@@ -80,39 +78,27 @@ def _get_token():
     if not CLIENT_ID or not CLIENT_SECRET:
         raise RuntimeError("Adobe 凭据未配置")
 
-    # 1) 先试 Adobe PDF Services 专用 token 端点（只需 client_id + client_secret）
-    params_simple = {
+    # Adobe PDF Services token endpoint only accepts client_id + client_secret.
+    params = {
         "client_id": CLIENT_ID,
         "client_secret": CLIENT_SECRET,
     }
-    body_simple = urllib.parse.urlencode(params_simple).encode("utf-8")
+    body = urllib.parse.urlencode(params).encode("utf-8")
 
     req = urllib.request.Request(
         TOKEN_URL,
-        data=body_simple,
+        data=body,
         method="POST",
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Accept": "application/json",
+        },
     )
 
     try:
         data = _request(req, timeout=10)
-    except RuntimeError:
-        # 2) fallback 到标准 IMS OAuth2 端点（需要 grant_type + scope）
-        params_ims = {
-            "grant_type": "client_credentials",
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "scope": SCOPE,
-        }
-        body_ims = urllib.parse.urlencode(params_ims).encode("utf-8")
-
-        req2 = urllib.request.Request(
-            IMS_TOKEN_URL,
-            data=body_ims,
-            method="POST",
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-        data = _request(req2, timeout=10)
+    except RuntimeError as exc:
+        raise RuntimeError(f"Adobe token 获取失败: {exc}") from exc
 
     token = data.get("access_token")
     if not token:
