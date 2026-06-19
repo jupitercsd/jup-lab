@@ -3,6 +3,8 @@
   'use strict';
 
   /* ---------- DOM 引用 ---------- */
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
   var uploadZone = document.getElementById('upload-zone');
   var fileInput = document.getElementById('file-input');
   var fileInfo = document.getElementById('file-info');
@@ -22,6 +24,16 @@
   var resultBlob = null;
   var resultFilename = null;
   var MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+  /* ---------- Toast ---------- */
+  function showToast(message, type) {
+    clearTimeout(toastTimer);
+    toastEl.textContent = message;
+    toastEl.className = 'toast ' + type + ' show';
+    toastTimer = setTimeout(function () {
+      toastEl.classList.remove('show');
+    }, 2800);
+  }
 
   /* ---------- 工具函数 ---------- */
   var ICON_MAP = {
@@ -179,6 +191,11 @@
     })
       .then(function (resp) {
         if (!resp.ok) {
+          if (resp.status === 429) {
+            return resp.json().then(function (data) {
+              throw { rateLimited: true, message: data.error };
+            });
+          }
           return responseError(resp);
         }
 
@@ -195,6 +212,14 @@
         resultArea.style.display = 'block';
       })
       .catch(function (err) {
+        if (err.rateLimited) {
+          showToast(err.message, 'error');
+          // 恢复按钮
+          statusArea.style.display = 'none';
+          actionRow.style.display = 'flex';
+          btnConvert.disabled = false;
+          return;
+        }
         setStatus('error', err.message);
         // 恢复按钮
         actionRow.style.display = 'flex';

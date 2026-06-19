@@ -5,7 +5,11 @@ POST /api/convert   multipart/form-data: file=<file>
 环境变量：
   ADOBE_CLIENT_ID      — Adobe API Key
   ADOBE_CLIENT_SECRET  — Adobe Client Secret
+  KV_REST_API_URL      — Upstash Redis REST API 地址（用于频率限制）
+  KV_REST_API_TOKEN    — Upstash Redis REST API token
 """
+import hashlib
+import ipaddress
 import json
 import os
 import re
@@ -13,6 +17,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler
 
 def _env(name, default=""):
@@ -27,6 +32,10 @@ API_BASE = _env("ADOBE_API_BASE", "https://pdf-services.adobe.io")
 MAX_FILE_BYTES = 10 * 1024 * 1024
 MAX_POLL_SECONDS = 50
 POLL_INTERVAL_SECONDS = 2
+DAILY_LIMIT = 3
+REDIS_URL = os.environ.get("KV_REST_API_URL", "")
+REDIS_TOKEN = os.environ.get("KV_REST_API_TOKEN", "")
+IP_HASH_SALT = os.environ.get("CONVERT_IP_HASH_SALT", REDIS_TOKEN)
 ALLOWED_ORIGINS = {
     origin.strip()
     for origin in os.environ.get("CONVERT_ALLOWED_ORIGINS", "").split(",")
@@ -211,6 +220,63 @@ def convert(file_bytes, mime_type):
     return _download_pdf(token, download_uri)
 
 
+# ---- 频率限制（Upstash Redis）----
+
+def _redis_cmd(command, *args, timeout=5):
+    if not REDIS_URL or not REDIS_TOKEN:
+        raise RuntimeError("Redis 未配置")
+
+    encoded_args = "/".join(urllib.parse.quote(str(arg), safe="") for arg in args)
+    url = f"{REDIS_URL.rstrip('/')}/{command}"
+    if encoded_args:
+        url += f"/{encoded_args}"
+
+    headers = {"Authorization": f"Bearer {REDIS_TOKEN}"}
+    req = urllib.request.Request(url, method="POST", headers=headers)
+
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            body = json.loads(resp.read().decode())
+            return body.get("result")
+    except Exception as exc:
+        print(f"[convert] Redis 命令失败 {command}: {exc}")
+        raise RuntimeError("Redis 命令失败") from exc
+
+
+def _hash_ip(ip: str) -> str:
+    material = f"{IP_HASH_SALT}:{ip}".encode("utf-8")
+    return hashlib.sha256(material).hexdigest()[:32]
+
+
+def _check_rate_limit(ip: str) -> tuple:
+    """返回 (allowed: bool, count: int)，失败时放行以避免阻断正常用户"""
+    try:
+        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        ip_hash = _hash_ip(ip)
+        key = f"cv:rate:{ip_hash}:{today}"
+
+        count = int(_redis_cmd("incr", key))
+
+        if count == 1:
+            seconds_left = int(86400 - time.time() % 86400)
+            _redis_cmd("expire", key, seconds_left, timeout=3)
+
+        return count <= DAILY_LIMIT, count
+    except RuntimeError:
+        # Redis 不可用时放行，避免阻断正常用户
+        return True, 0
+
+
+def _client_ip(headers) -> str:
+    raw = headers.get("X-Forwarded-For", "").split(",")[0].strip()
+    if not raw:
+        raw = headers.get("X-Real-IP", "").strip()
+    try:
+        return str(ipaddress.ip_address(raw))
+    except ValueError:
+        return "unknown"
+
+
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         content_type = self.headers.get("Content-Type", "")
@@ -231,6 +297,13 @@ class handler(BaseHTTPRequestHandler):
             self._respond(413, {"ok": False, "error": "文件过大，上限 10 MB"})
             return
 
+        # 频率检查在读取 body 之前，避免已限流用户浪费带宽
+        ip = _client_ip(self.headers)
+        allowed, count = _check_rate_limit(ip)
+        if not allowed:
+            self._respond(429, {"ok": False, "error": f"今日转换已达上限（{DAILY_LIMIT} 次），明天再来吧"})
+            return
+
         raw = self.rfile.read(content_length)
         file_bytes, filename, uploaded_mime = _parse_multipart(raw, content_type)
         if not file_bytes:
@@ -247,7 +320,7 @@ class handler(BaseHTTPRequestHandler):
             self._respond(400, {"ok": False, "error": "不支持的文件格式"})
             return
 
-        print(f"[convert] 收到文件: {filename} ({mime_type}) {len(file_bytes)} bytes")
+        print(f"[convert] 收到文件: {filename} ({mime_type}) {len(file_bytes)} bytes (IP 今日第 {count} 次)")
 
         try:
             pdf_bytes = convert(file_bytes, mime_type)

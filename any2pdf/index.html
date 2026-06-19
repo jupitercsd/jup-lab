@@ -24,6 +24,9 @@
         <p class="upload-hint">
           支持 DOC / DOCX / XLS / XLSX / PPT / PPTX / JPG / PNG / GIF / TXT / RTF
         </p>
+		<p class="upload-hint upload-warn">
+		  免费额度：每日 10 次
+		</p>
         <input type="file" id="file-input" accept=".doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.bmp,.gif,.tiff,.tif,.txt,.rtf" hidden>
       </div>
 
@@ -66,6 +69,9 @@
       </div>
     </section>
   </div>
+
+  <!-- Toast 消息通知 -->
+  <div class="toast" id="toast" aria-live="polite"></div>
 
   <script src="app.js"></script>
 </body>

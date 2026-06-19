@@ -1,4 +1,4 @@
 .vercel
 .env*
 
-config/
+local_test/
