@@ -32,7 +32,7 @@ API_BASE = _env("ADOBE_API_BASE", "https://pdf-services.adobe.io")
 MAX_FILE_BYTES = 10 * 1024 * 1024
 MAX_POLL_SECONDS = 50
 POLL_INTERVAL_SECONDS = 2
-DAILY_LIMIT = 3
+DAILY_LIMIT = 10
 REDIS_URL = os.environ.get("KV_REST_API_URL", "")
 REDIS_TOKEN = os.environ.get("KV_REST_API_TOKEN", "")
 IP_HASH_SALT = os.environ.get("CONVERT_IP_HASH_SALT", REDIS_TOKEN)
@@ -301,7 +301,7 @@ class handler(BaseHTTPRequestHandler):
         ip = _client_ip(self.headers)
         allowed, count = _check_rate_limit(ip)
         if not allowed:
-            self._respond(429, {"ok": False, "error": f"今日转换已达上限（{DAILY_LIMIT} 次），明天再来吧"})
+            self._respond(429, {"ok": False, "error": f"今日转换已达上限，明天再来吧"})
             return
 
         raw = self.rfile.read(content_length)

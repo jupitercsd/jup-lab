@@ -105,10 +105,6 @@
   margin-top: 6px;
 }
 
-.upload-warn {
-  color: var(--danger, #dc2626) !important;
-  font-weight: 500;
-}
 
 /* ========== Toast 消息通知 ========== */
 .toast {
