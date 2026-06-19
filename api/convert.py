@@ -80,18 +80,16 @@ def _get_token():
     if not CLIENT_ID or not CLIENT_SECRET:
         raise RuntimeError("Adobe 凭据未配置")
 
-    params = {
-        "grant_type": "client_credentials",
+    # 1) 先试 Adobe PDF Services 专用 token 端点（只需 client_id + client_secret）
+    params_simple = {
         "client_id": CLIENT_ID,
         "client_secret": CLIENT_SECRET,
-        "scope": SCOPE,
     }
-    body = urllib.parse.urlencode(params).encode("utf-8")
+    body_simple = urllib.parse.urlencode(params_simple).encode("utf-8")
 
-    # try primary endpoint first
     req = urllib.request.Request(
         TOKEN_URL,
-        data=body,
+        data=body_simple,
         method="POST",
         headers={"Content-Type": "application/x-www-form-urlencoded"},
     )
@@ -99,10 +97,18 @@ def _get_token():
     try:
         data = _request(req, timeout=10)
     except RuntimeError:
-        # fallback to IMS OAuth2 endpoint
+        # 2) fallback 到标准 IMS OAuth2 端点（需要 grant_type + scope）
+        params_ims = {
+            "grant_type": "client_credentials",
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "scope": SCOPE,
+        }
+        body_ims = urllib.parse.urlencode(params_ims).encode("utf-8")
+
         req2 = urllib.request.Request(
             IMS_TOKEN_URL,
-            data=body,
+            data=body_ims,
             method="POST",
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )
