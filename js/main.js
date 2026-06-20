@@ -1,18 +1,16 @@
-/* ===== 访客统计 ===== */
+/* ===== 访客统计（自有 Redis）===== */
 (function () {
-  var isWebPage = /^https?:$/.test(window.location.protocol);
-  var isLocalHost = /^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/.test(window.location.hostname);
+  var totalEl = document.getElementById('visitor-total');
+  if (!totalEl) return;
 
-  if (!isWebPage || isLocalHost) {
-    document.getElementById('busuanzi_value_site_pv').textContent = '-';
-    document.getElementById('busuanzi_value_site_uv').textContent = '-';
-    return;
-  }
-
-  var script = document.createElement('script');
-  script.defer = true;
-  script.src = 'https://cn.vercount.one/js';
-  document.body.appendChild(script);
+  fetch('/api/visitor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+    .then(function (data) {
+      totalEl.textContent = '总访问 ' + (data.total || 0);
+    })
+    .catch(function () {
+      totalEl.textContent = '总访问 -';
+    });
 })();
 
 /* ===== Toast 通知 ===== */

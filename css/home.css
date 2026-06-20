@@ -570,8 +570,7 @@ body::before {
   color: #d6d3d1;
 }
 
-#busuanzi_value_site_pv,
-#busuanzi_value_site_uv {
+#visitor-total {
   color: #be185d;
   font-weight: 800;
   font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;

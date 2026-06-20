@@ -83,7 +83,6 @@
           </div>
           <h3>图片文字提取</h3>
           <p>利用GPT 5.5-xhigh实现高效的文字识别</p>
-          <p class="tool-warning">当前仅支持上传图片文件</p>
         </div>
       </a>
 
@@ -93,7 +92,8 @@
             <span class="tool-tag soon">🕙 制作中</span>
           </div>
           <h3>GPT Image 2</h3>
-          <p>在线文生图入口, 迄今为止最强大的绘图模型</p>
+          <p>在线文生图入口, 迄今为止最强大的绘图模型。支持多轮修图, 图像编辑</p>
+          <p class="tool-warning">当前仅单轮生成</p>
         </div>
       </a>
     </div>
@@ -142,11 +142,9 @@
     </div>
 
     <footer class="page-footer">
-      <!-- 访问统计 -->
+      <!-- 访问统计（自有 Redis 计数） -->
       <p class="site-stats">
-        <span id="busuanzi_container_site_pv">总访问 <span id="busuanzi_value_site_pv">...</span></span>
-        <span class="pipe">/</span>
-        <span id="busuanzi_container_site_uv">访客 <span id="busuanzi_value_site_uv">...</span></span>
+        <span id="visitor-total">总访问 ...</span>
       </p>
     </footer>
   </main>
