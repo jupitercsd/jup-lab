@@ -570,10 +570,22 @@ body::before {
   color: #d6d3d1;
 }
 
-#visitor-total {
-  color: #be185d;
+.site-stats .stats-label {
+  color: #78716c;
+  font-size: 12px;
+}
+
+.site-stats .stats-sep {
+  color: #d6d3d1;
+  margin: 0 2px;
+}
+
+.site-stats .stats-num {
+  color: #db2777;
   font-weight: 800;
   font-family: "SF Mono", "Cascadia Code", "Consolas", monospace;
+  font-size: 15px;
+  text-shadow: 0 0 12px rgba(219, 39, 119, 0.25);
 }
 
 /* ========== 响应式 ========== */

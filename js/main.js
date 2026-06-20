@@ -1,15 +1,20 @@
 /* ===== 访客统计（自有 Redis）===== */
 (function () {
   var totalEl = document.getElementById('visitor-total');
+  var todayEl = document.getElementById('visitor-today');
   if (!totalEl) return;
 
   fetch('/api/visitor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
     .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
     .then(function (data) {
-      totalEl.textContent = '总访问 ' + (data.total || 0);
+      totalEl.textContent = data.total || 0;
+      var daily = data.daily || [];
+      var today = daily.length ? daily[daily.length - 1][1] : 0;
+      if (todayEl) todayEl.textContent = today;
     })
     .catch(function () {
-      totalEl.textContent = '总访问 -';
+      totalEl.textContent = '-';
+      if (todayEl) todayEl.textContent = '-';
     });
 })();
 
